@@ -11,7 +11,22 @@ class GCodeStrecke:
         self.y2 = y2
         self.z2 = z2
 
-def export(sliced, gcode_anfang, gcode_ende, ausgabe_datei):
+class GCodeBefehl:
+    def __init__(self, art, x, y, z, e, text):
+        self.art = art
+        self.x = x
+        self.y = y
+        self.z = z
+        self.e = e
+        self.text = text
+
+def z(zahl):
+    s = "{:0.5f}".format(zahl)
+    return float(s)
+
+def export(sliced, ausgabe_datei, gcode_anfang=None, gcode_ende=None):
+
+    befehle = []
 
     with open(ausgabe_datei, "w") as f:
 
@@ -29,11 +44,19 @@ def export(sliced, gcode_anfang, gcode_ende, ausgabe_datei):
         for strecke in sliced:
             if e_off > 100:
                 e_off = 0
-                print("G92 E0", file=f)
+                s = "G92 E0"
+                print(s, file=f)
+                befehle.append(GCodeBefehl("G92", None, None, None, None, "G92 E0"))
 
             e_dist = math.hypot(strecke.x2 - strecke.x1, strecke.y2 - strecke.y1)
-            print("G1 X{:0.5f} Y{:0.5f} Z{:0.5f}".format(strecke.x1, strecke.y1, strecke.z1), file=f)
-            print("G1 X{:0.5f} Y{:0.5f} E{:0.5f}".format(strecke.x2, strecke.y2, e_off + e_dist), file=f)
+            s1 = "G1 X{:0.5f} Y{:0.5f} Z{:0.5f}".format(strecke.x1, strecke.y1, strecke.z1)
+            s2 = "G1 X{:0.5f} Y{:0.5f} E{:0.5f}".format(strecke.x2, strecke.y2, e_off + e_dist)
+
+            befehle.append(GCodeBefehl("G1", z(strecke.x1), z(strecke.y1), z(strecke.z1), None, s1))
+            befehle.append(GCodeBefehl("G1", z(strecke.x2), z(strecke.y2), None, z(e_off + e_dist), s2))
+
+            print(s1, file=f)
+            print(s2, file=f)
             e_off += e_dist
 
 
@@ -42,3 +65,5 @@ def export(sliced, gcode_anfang, gcode_ende, ausgabe_datei):
         #     with open(gcode_ende, "r") as g:
         #         for zeile in g:
         #             print(zeile.strip(), file=f)
+
+        return befehle

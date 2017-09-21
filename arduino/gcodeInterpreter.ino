@@ -31,6 +31,10 @@ float fr = 0;
 long step_delay;
 
 
+float xAchseVerhaltnis, yAchseVerhaltnis, zAchseVerhaltnis;
+float langeXAchseMM, langeYAchseMM, langeZAchseMM;
+
+
 void feedrate(float nfr) {
   if(fr==nfr)
     return;
@@ -91,6 +95,10 @@ void line(float newx,float newy,float newz,float newe) {
   position(newx,newy,newz,newe);
 }
 
+void lineMM(float newx,float newy,float newz,float newe) {
+  line(newx * xAchseVerhaltnis, newy * yAchseVerhaltnis, newz * zAchseVerhaltnis, newe * eAchseVerhaltnis);
+}
+
 float parsenumber(char code,float val) {
   char *ptr=buffer;
   while(ptr && *ptr && ptr<buffer+sofar) {
@@ -107,7 +115,7 @@ void analysiereBefehl() {
 
   switch(cmd) {
     case  1:
-      line(
+      lineMM(
             parsenumber('X',px),
             parsenumber('Y',py),
             parsenumber('Z',pz),
@@ -116,7 +124,7 @@ void analysiereBefehl() {
       break;
 
     case 92:
-      position(
+      position( // TODO: positionMM??
                 parsenumber('X',0),
                 parsenumber('Y',0),
                 parsenumber('Z',0),
@@ -131,6 +139,51 @@ void analysiereBefehl() {
 
 void ready() {
   sofar = 0;
+  Serial.print(F("$"));
+}
+
+void achsenEinstellen() {
+  xAchseKalibrieren();
+  yAchseKalibrieren();
+
+  lineMM(0, 0, 0, 0);
+  z1 = zAchseKalibrieren();
+
+  lineMM(langeXAchseMM, 0, 0, 0);
+  z2 = zAchseKalibrieren();
+
+  lineMM(0, langeYAchseMM, 0, 0);
+  z3 = zAchseKalibrieren();
+
+  lineMM(langeXAchseMM, langeYAchseMM, 0, 0);
+  z4 = zAchseKalibrieren();
+}
+
+float xAchseKalibrieren() {
+  int schritteX = 0;
+  while(!xEndschalter()) {
+    schritteX++;
+    oneStep(0, 1);
+  }
+  xAchseVerhaltnis = schritteX / langeXAchseMM;
+}
+
+float yAchseKalibrieren() {
+  int schritteY = 0;
+  while(!yEndschalter()) {
+    schritteY++;
+    oneStep(1, 1);
+  }
+  yAchseVerhaltnis = schritteY / langeYAchseMM;
+}
+
+float zAchseKalibrieren() {
+  int schritteZ = 0;
+  while(!zEndschalter()) {
+    schritteZ++;
+    oneStep(2, 1);
+  }
+  return schritteZ / langeZAchseMM;
 }
 
 
@@ -147,6 +200,11 @@ void setup() {
 
   position(0,0,0,0);
   feedrate(200);
+
+  achsenEinstellen();
+
+
+
   ready();
 }
 

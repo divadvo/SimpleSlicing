@@ -12,7 +12,7 @@ def start(stl_datei, parameter, gcode_anfang, gcode_ende, ausgabe_datei):
     sliced = slicing.slicer.slice(stl_data) # default parameter
 
     # Export
-    gcode.gcodehelfer.export(sliced, gcode_anfang, gcode_ende, ausgabe_datei)
+    gcode.gcodehelfer.export(sliced, ausgabe_datei, gcode_anfang, gcode_ende)
 
     return stl_data
 
