@@ -24,7 +24,7 @@ class App:
     self.button_update.config(state="disabled")
 
     g = git.cmd.Git(os.getcwd())
-    #g.pull()
+    g.pull()
 
 
     self.button_start.config(state="normal")
