@@ -36,7 +36,11 @@ class App:
     print("Start")
 
     import subprocess
-    subprocess.Popen("python gui.py", shell=True)
+    import os
+    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    fileName = os.path.join(__location__, 'gui.py')
+
+    subprocess.Popen("python " + fileName, shell=True)
 
 def center(win):
     """
