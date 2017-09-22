@@ -30,7 +30,7 @@ class App:
     self.button_start.config(state="normal")
     self.button_update.config(state="normal")
 
-    print "pull ready"
+    print "pull ready Test"
 
   def button_start_click(self):
     print("Start")
