@@ -61,7 +61,7 @@ def center(win):
 
 if __name__ == '__main__':
   root = Tk()
-  root.title("3D Druck")
+  root.title("3D Druck Update")
   root.geometry("400x100")
   center(root)
 
