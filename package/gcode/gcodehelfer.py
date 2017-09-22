@@ -25,7 +25,8 @@ def z(zahl):
     return float(s)
 
 def export(sliced, ausgabe_datei, gcode_anfang=None, gcode_ende=None):
-
+    print('export')
+    print(ausgabe_datei)
     befehle = []
 
     with open(ausgabe_datei, "w") as f:
@@ -65,5 +66,8 @@ def export(sliced, ausgabe_datei, gcode_anfang=None, gcode_ende=None):
         #     with open(gcode_ende, "r") as g:
         #         for zeile in g:
         #             print(zeile.strip(), file=f)
+
+        print('finished')
+
 
         return befehle
