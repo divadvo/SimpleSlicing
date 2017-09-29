@@ -41,8 +41,8 @@ class ControlPanel(wx.Panel):
         self.tc1 = wx.TextCtrl(self, value="0.2")
         self.tc2 = wx.TextCtrl(self, value="0.2")
         self.tc3 = wx.TextCtrl(self, value="0.4")
-        self.tc4 = wx.TextCtrl(self, value="20")
-        self.tc5 = wx.TextCtrl(self, value="20")
+        self.tc4 = wx.TextCtrl(self, value="0")
+        self.tc5 = wx.TextCtrl(self, value="0")
 
         fgs.AddMany([
             (self.infill_text), (self.tc1, 1, wx.EXPAND),

@@ -1,39 +1,68 @@
+from __future__ import division 
 import math
 import numpy as np
 import stl.stl
 import gcode.gcodehelfer
 
-class Quadrat:
-    def __init__(self, unit, x=0, y=0):
-        # oben, unten, rechts, links
-        self.unit = unit
-        self.x = x
-        self.y = y
 
-        self.o = (x + 0,            y + 0.5 * unit)
-        self.u = (x + 0,            y + -0.5 * unit)
-        self.r = (x + 0.5 * unit,   y +  0)
-        self.l = (x + -0.5 * unit,  y + 0)
+class InfillGerade:
+    def __init__(self, x1, y1, x2, y2):
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
 
-    def get_alle_strecken(self):
-        return [
-            (self.o, self.r),
-            (self.r, self.u),
-            (self.u, self.l),
-            (self.l, self.o)
-        ]
+class Pattern:
+    def __init__(self, unit, hilfswerte):
+        import math
+        minX = 0
+        minY = 0
+        maxX = int(math.ceil(hilfswerte.max.x - hilfswerte.min.x))
+        maxY = int(math.ceil(hilfswerte.max.y - hilfswerte.min.y))
+        unitInt = int(unit)
 
-    def fuelle_flache(self, max_x, max_y):
-        quadrate = []
-        for x_off in np.arange(0, max_x + self.unit, self.unit):
-            for y_off in np.arange(0, max_y + self.unit, self.unit):
-                quadrate.append(Quadrat(self.unit, self.x + x_off, self.y + y_off))
+        print minX, minY, maxX, maxY, unitInt
 
-        strecken = []
-        for quadrat in quadrate:
-            strecken += quadrat.get_alle_strecken()
 
-        return strecken
+        self.strecken = []
+        for i in range(minX, maxX, unitInt):
+            self.strecken.append(InfillGerade(i, minY, i, maxY))
+        
+        for i in range(minY, maxY, unitInt):
+            self.strecken.append(InfillGerade(minX, i, maxX, i))
+
+    def schnittpunkte_alle(self, perimeters):
+        schnittpunkte = []
+        for gerade in self.strecken:
+            schnittpunkte.extend(self.schnittpunkte_errechnen(gerade, perimeters))
+        return schnittpunkte
+
+
+    def schnittpunkte_errechnen(self, gerade, perimeters):
+        schnittpunkte = []
+        for strecke in perimeters:
+            intersect = self.get_line_intersection(gerade, strecke)
+            if intersect is not False:
+                schnittpunkte.append(intersect)
+        return schnittpunkte
+
+    def get_line_intersection(self, p, q):
+        s1_x = p.x2 - p.x1
+        s1_y = p.y2 - p.y1
+        s2_x = q.x2 - q.x1
+        s2_y = q.y2 - q.y1
+
+        denom = s1_x * s2_y - s2_x * s1_y
+        if denom == 0:
+            return False
+
+        s = (-s1_y * (p.x1 - q.x1) + s1_x * (p.y1 - q.y1)) / (-s2_x * s1_y + s1_x * s2_y)
+        t = ( s2_x * (p.y1 - q.y1) - s2_y * (p.x1 - q.x1)) / (-s2_x * s1_y + s1_x * s2_y)
+
+        if s >= 0 and s <= 1 and t >= 0 and t <= 1:
+            return p.x1 + (t * s1_x), p.y1 + (t * s1_y)
+        else:
+            return False
 
 
 
@@ -44,23 +73,35 @@ def generate_infill_and_supports(hilfswerte, parameter, perimeters):
     max_x = hilfswerte.max.x - hilfswerte.min.x
     max_y = hilfswerte.max.y - hilfswerte.min.y
     max_z = hilfswerte.max.z - hilfswerte.min.z
-    unit = math.sqrt(max_x * max_y) * (1.00000001 - parameter["infill"]) / 2
+    unit = math.sqrt(max_x * max_y) * (1.00000001 - parameter["infill"]) / 2 #4
+    print math.sqrt(max_x * max_y)
+    print "unit", unit
 
-    quadrat = Quadrat(unit)
-    strecken = quadrat.fuelle_flache(max_x, max_y)
-
-    # TODO: round strecken
-
-    result = [strecke for strecke in strecken if
-        0 <= round(strecke[0][0], 2) <= max_x and
-        0 <= round(strecke[1][0], 2) <= max_x and
-
-        0 <= round(strecke[0][1], 2) <= max_y and
-        0 <= round(strecke[1][1], 2) <= max_y
-    ]
+    pattern = Pattern(unit, hilfswerte)
 
     infill = []
+
+    import wx
+
+    progressMax = 100
+    dialog = wx.ProgressDialog("Infill", "Bitte warten", progressMax,
+            style=wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_SMOOTH | wx.PD_AUTO_HIDE)
+
     for z_off in np.arange(0, max_z, parameter["layer_height"]):
-        infill += [gcode.gcodehelfer.GCodeStrecke(x1, y1, z_off, x2, y2, z_off) for ((x1, y1), (x2, y2)) in result]
+        percentage = z_off / max_z * 100
+        print "{0:.0f}%".format(percentage)
+        dialog.Update(percentage)
+
+        schnittpunkte = pattern.schnittpunkte_alle([x for x in perimeters if x.z1 == z_off])
+        for i in range(0, len(schnittpunkte), 2):
+            if i+1 < len(schnittpunkte):
+                P1 = schnittpunkte[i]
+                P2 = schnittpunkte[i+1]
+                infill.append(gcode.gcodehelfer.GCodeStrecke(P1[0], P1[1], z_off, P2[0], P2[1], z_off))
+
+    #for z_off in np.arange(0, max_z, parameter["layer_height"]):
+    #    infill += [gcode.gcodehelfer.GCodeStrecke(x1, y1, z_off, x2, y2, z_off) for ((x1, y1), (x2, y2)) in result]
+
+    dialog.Destroy()
 
     return infill

@@ -15,7 +15,18 @@ def generiere_aussenwaende(stl_data, parameter):
     # Von Hohe 0 bis oben
     # in [schicht_dicke] Schritten
     # np.arange() fur dezimale Schritte
+    import wx
+
+    progressMax = 100
+    dialog = wx.ProgressDialog("Aussenwaende", "Bitte warten", progressMax,
+            style=wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_SMOOTH | wx.PD_AUTO_HIDE)
+
+
     for aktuelle_hohe in np.arange(0, maximale_hohe + schicht_dicke, schicht_dicke):
+        percentage = aktuelle_hohe / (maximale_hohe + schicht_dicke) * 100
+        print "{0:.0f}%".format(percentage)
+        dialog.Update(percentage)
+
         for dreieck in stl_data.dreiecke:
             min_z = min([eckpunkt.z for eckpunkt in dreieck.eckpunkte])
             max_z = max([eckpunkt.z for eckpunkt in dreieck.eckpunkte])
@@ -23,6 +34,8 @@ def generiere_aussenwaende(stl_data, parameter):
             # Benutze nur die Dreiecke die in der derzeitigen Schicht liegen
             if min_z - schicht_dicke < aktuelle_hohe <= max_z:
                 waende += intersect(dreieck, aktuelle_hohe, parameter, stl_data.hilfswerte)
+
+    dialog.Destroy()
 
     return waende
 
