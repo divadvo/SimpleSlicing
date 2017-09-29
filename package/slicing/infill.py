@@ -23,12 +23,15 @@ class Pattern:
 
         print minX, minY, maxX, maxY, unitInt
 
+        import numpy as np
 
         self.strecken = []
-        for i in range(minX, maxX, unitInt):
+        #for i in range(minX, maxX, unitInt):
+        for i in np.arange(minX, maxX, unit):
             self.strecken.append(InfillGerade(i, minY, i, maxY))
         
-        for i in range(minY, maxY, unitInt):
+        #for i in range(minY, maxY, unitInt):
+        for i in np.arange(minY, maxY, unit):
             self.strecken.append(InfillGerade(minX, i, maxX, i))
 
     def schnittpunkte_alle(self, perimeters):
