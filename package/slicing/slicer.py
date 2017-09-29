@@ -14,9 +14,9 @@ def slice(stl_data, parameter=DEFAULT_PARAMETERS):
     stl_data.verschiebe_zum_ursprung()
 
     perimeters = aussenwaende.generiere_aussenwaende(stl_data, parameter)
-    infill_result = infill.generate_infill_and_supports(stl_data.hilfswerte, parameter)
+    infill_result = infill.generate_infill_and_supports(stl_data.hilfswerte, parameter, perimeters)
 
-    sliced = perimeters #+ infill_result
+    sliced = perimeters + infill_result
     sliced.sort(key=lambda strecke: strecke.z1)
 
     return sliced

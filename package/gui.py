@@ -30,20 +30,26 @@ class ControlPanel(wx.Panel):
         self.button_stl_to_gcode = wx.Button(self, label='STL -> GCode')
         self.Bind(wx.EVT_BUTTON, self.button_stl_to_gcode_click, self.button_stl_to_gcode)
 
-        fgs = wx.FlexGridSizer(4, 2, 10, 10)
+        fgs = wx.FlexGridSizer(6, 2, 10, 10)
 
         self.infill_text = wx.StaticText(self, label="Infill")
         self.layer_height_text = wx.StaticText(self, label="layer_height")
         self.nozzle_diameter_text = wx.StaticText(self, label="nozzle_diameter")
+        self.start_x_text = wx.StaticText(self, label="Start X")
+        self.start_y_text = wx.StaticText(self, label="Start Y")
 
         self.tc1 = wx.TextCtrl(self, value="0.2")
         self.tc2 = wx.TextCtrl(self, value="0.2")
         self.tc3 = wx.TextCtrl(self, value="0.4")
+        self.tc4 = wx.TextCtrl(self, value="20")
+        self.tc5 = wx.TextCtrl(self, value="20")
 
         fgs.AddMany([
             (self.infill_text), (self.tc1, 1, wx.EXPAND),
             (self.layer_height_text), (self.tc2, 1, wx.EXPAND),
-            (self.nozzle_diameter_text), (self.tc3, 1, wx.EXPAND)
+            (self.nozzle_diameter_text), (self.tc3, 1, wx.EXPAND),
+            (self.start_x_text), (self.tc4, 1, wx.EXPAND),
+            (self.start_y_text), (self.tc5, 1, wx.EXPAND)
             ])
 
         fgs.AddGrowableRow(2, 1)
@@ -139,6 +145,8 @@ class ControlPanel(wx.Panel):
             "infill": float(self.tc1.GetValue()),
             "layer_height": float(self.tc2.GetValue()),
             "nozzle_diameter": float(self.tc3.GetValue()),
+            "start_x": float(self.tc4.GetValue()),
+            "start_y": float(self.tc5.GetValue()),
         }
 
         global gcode_datei_path
@@ -147,7 +155,7 @@ class ControlPanel(wx.Panel):
         gcode_datei_path = os.path.splitext(stl_datei_path)[0] + ".gcode"
 
         global befehle
-        befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path)
+        befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path, "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/tests/config/anfang.gcode", "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/tests/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
 
         self.button_gcode_to_arduino.Enable()
         self.befehle_text.Enable()
@@ -238,12 +246,50 @@ class Example(wx.Frame):
 
     def erstelle_panels(self):
 
-        self.sp = wx.SplitterWindow(self)
+        #self.sp = wx.SplitterWindow(self)
 
-        self.view_panel = ViewPanel(self.sp)
-        self.control_panel = ControlPanel(self.sp)
-        self.sp.SplitVertically(self.view_panel, self.control_panel)
-        self.sp.SetSashGravity(0.5)
+        #self.view_panel = ViewPanel(self.sp)
+        #self.control_panel = ControlPanel(self.sp)
+        #self.sp.SplitVertically(self.view_panel, self.control_panel)
+        #self.sp.SetSashGravity(0.5)
+
+        
+
+
+        self.topSplitter = wx.SplitterWindow(self)
+        vSplitter = wx.SplitterWindow(self.topSplitter)
+
+
+
+
+        self.button_panel = wx.Panel(self.topSplitter)
+ 
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+ 
+        self.open_button = wx.Button(self.button_panel, label="STL Offnen")
+        self.open_button.Bind(wx.EVT_BUTTON, self.on_open)
+        h_sizer.Add(self.open_button, 0, wx.CENTER)
+ 
+        main_sizer.Add((0,0), 1, wx.EXPAND)
+        main_sizer.Add(h_sizer, 0, wx.CENTER)
+        main_sizer.Add((0,0), 1, wx.EXPAND)
+ 
+        self.button_panel.SetSizer(main_sizer)
+
+
+ 
+        self.view_panel = ViewPanel(vSplitter)
+        self.control_panel = ControlPanel(vSplitter)
+        vSplitter.SplitVertically(self.view_panel, self.control_panel)
+        vSplitter.SetSashGravity(0.5)
+ 
+        self.topSplitter.SplitHorizontally(self.button_panel, vSplitter)
+        self.topSplitter.SetSashGravity(0.1)
+ 
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.topSplitter, 1, wx.EXPAND)
+        self.SetSizer(sizer)
 
         # self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         # self.sizer.Add(self.view_panel, 0, wx.ALIGN_LEFT, 4)
@@ -278,6 +324,12 @@ class Example(wx.Frame):
         self.view_panel.Show()
         print 'View'
         self.control_panel.Show()
+
+        self.button_panel.Hide()
+
+        #self.topSplitter.SetSashGravity(0)
+        self.topSplitter.Unsplit(self.button_panel)
+
 
     def on_quit(self, e):
         self.Close()

@@ -37,7 +37,7 @@ class Quadrat:
 
 
 
-def generate_infill_and_supports(hilfswerte, parameter):
+def generate_infill_and_supports(hilfswerte, parameter, perimeters):
     if parameter["infill"] == 0:
             return []
 
