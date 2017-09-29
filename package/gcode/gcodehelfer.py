@@ -44,14 +44,15 @@ def export(sliced, ausgabe_datei, gcode_anfang=None, gcode_ende=None, mitte_x=0,
         # Alles kopieren
         e_off = 0
         for strecke in sliced:
-            if e_off > 100:
+            if e_off > 5:
                 e_off = 0
                 s = "G92 E0"
                 print(s, file=f)
                 befehle.append(GCodeBefehl("G92", None, None, None, None, "G92 E0"))
 
             #e_dist = math.hypot(strecke.x2 - strecke.x1, strecke.y2 - strecke.y1)
-            e_dist = math.sqrt((strecke.x2 - strecke.x1)**2 + (strecke.y2 - strecke.y1)**2)
+            e_dist = math.sqrt((strecke.x2 - strecke.x1)**2 + (strecke.y2 - strecke.y1)**2) / 10 # * a
+            print (e_dist)
             s1 = "G1 X{:0.5f} Y{:0.5f} Z{:0.5f}".format(strecke.x1 + mitte_x, strecke.y1 + mitte_y, strecke.z1)
             s2 = "G1 X{:0.5f} Y{:0.5f} E{:0.5f}".format(strecke.x2 + mitte_x, strecke.y2 + mitte_y, e_off + e_dist)
 
