@@ -17,6 +17,7 @@ def slice(stl_data, parameter=DEFAULT_PARAMETERS):
     infill_result = infill.generate_infill_and_supports(stl_data.hilfswerte, parameter, perimeters)
 
     sliced = perimeters + infill_result
-    sliced.sort(key=lambda strecke: strecke.z1)
+    #sliced.sort(key=lambda strecke: strecke.z1)
+    sliced = sorted(sliced, key = lambda strecke: (strecke.z1, strecke.infill))
 
     return sliced

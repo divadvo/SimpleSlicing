@@ -26,12 +26,12 @@ class Pattern:
         import numpy as np
 
         self.strecken = []
-        #for i in range(minX, maxX, unitInt):
-        for i in np.arange(minX, maxX, unit):
+        for i in range(minX, maxX, unitInt):
+        #for i in np.arange(minX, maxX, unit):
             self.strecken.append(InfillGerade(i, minY, i, maxY))
         
-        #for i in range(minY, maxY, unitInt):
-        for i in np.arange(minY, maxY, unit):
+        for i in range(minY, maxY, unitInt):
+        #for i in np.arange(minY, maxY, unit):
             self.strecken.append(InfillGerade(minX, i, maxX, i))
 
     def schnittpunkte_alle(self, perimeters):
@@ -100,7 +100,7 @@ def generate_infill_and_supports(hilfswerte, parameter, perimeters):
             if i+1 < len(schnittpunkte):
                 P1 = schnittpunkte[i]
                 P2 = schnittpunkte[i+1]
-                infill.append(gcode.gcodehelfer.GCodeStrecke(P1[0], P1[1], z_off, P2[0], P2[1], z_off))
+                infill.append(gcode.gcodehelfer.GCodeStrecke(P1[0], P1[1], z_off, P2[0], P2[1], z_off, True))
 
     #for z_off in np.arange(0, max_z, parameter["layer_height"]):
     #    infill += [gcode.gcodehelfer.GCodeStrecke(x1, y1, z_off, x2, y2, z_off) for ((x1, y1), (x2, y2)) in result]
