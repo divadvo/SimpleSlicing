@@ -98,7 +98,7 @@ class ControlPanel(wx.Panel):
 
         global befehle
         befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path, "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/anfang.gcode", "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
-        self.aktualisiere_befehle_text(len(befehle))
+        self.aktualisiere_befehle_text(befehle)
 
     def setze_anzahl_dreiecke(self, anzahl_dreiecke):
         self.dreiecke_text.SetLabel("Anzahl Dreiecke: " + str(anzahl_dreiecke))

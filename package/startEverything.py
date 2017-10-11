@@ -10,28 +10,6 @@ class App:
                          command=self.button_start_click, height=5, width=20)
     self.button_start.grid(row=0, column=0)
 
-    self.button_update = Button(frame,
-                         text="Update",
-                         command=self.button_update_click, height=5, width=20)
-    self.button_update.grid(row=0, column=1)
-    
-  def button_update_click(self):
-    print("Update Git")
-    import git 
-    import os
-
-    self.button_start.config(state="disabled")
-    self.button_update.config(state="disabled")
-
-    g = git.cmd.Git(os.getcwd())
-    g.pull()
-
-
-    self.button_start.config(state="normal")
-    self.button_update.config(state="normal")
-
-    print "pull ready Test"
-
   def button_start_click(self):
     print("Start")
 

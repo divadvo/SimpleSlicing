@@ -3,29 +3,13 @@ import math
 
 class GCodeStrecke:
     def __init__(self, x1, y1, z1, x2, y2, z2, infill=False):
-        
-        if not infill:
-            self.x1 = x1
-            self.y1 = y1
-            self.z1 = z1
+        self.x1 = x1
+        self.y1 = y1
+        self.z1 = z1
 
-            self.x2 = x2
-            self.y2 = y2
-            self.z2 = z2
-
-        else:
-            prozent = 0
-
-            px = x2 - x1
-            py = y2 - y1
-
-            self.x1 = x1 - prozent * px
-            self.y1 = y1 - prozent * py
-            self.z1 = z1
-
-            self.x2 = x2 + prozent * px
-            self.y2 = y2 + prozent * py
-            self.z2 = z2
+        self.x2 = x2
+        self.y2 = y2
+        self.z2 = z2
 
         self.infill = infill
 
@@ -35,32 +19,14 @@ class GCodeStrecke:
         self.y1, self.y2 = self.y2, self.y1
         self.z1, self.z2 = self.z2, self.z1
 
-
     def __str__(self):
         return "({} {} {}  {} {} {})".format(self.x1, self.y1, self.z1, self.x2, self.y2, self.z2)
 
     def __repr__(self):
         return "({} {} {}  {} {} {})".format(self.x1, self.y1, self.z1, self.x2, self.y2, self.z2)
 
-class GCodeBefehl:
-    def __init__(self, art, x, y, z, e, text):
-        self.art = art
-        self.x = x
-        self.y = y
-        self.z = z
-        self.e = e
-        self.text = text
-
-def z(zahl):
-    s = "{:0.5f}".format(zahl)
-    return float(s)
-
 def export(sliced, ausgabe_datei, gcode_anfang=None, gcode_ende=None, mitte_x=0, mitte_y=0):
-    print('export')
-    print(ausgabe_datei)
-    print(gcode_anfang, gcode_ende, mitte_x, mitte_y)
-    befehle = []
-
+    # Offne Datei
     with open(ausgabe_datei, "w") as f:
 
         # Anfang kopieren
@@ -79,22 +45,20 @@ def export(sliced, ausgabe_datei, gcode_anfang=None, gcode_ende=None, mitte_x=0,
                 e_off = 0
                 s = "G92 E0"
                 print(s, file=f)
-                befehle.append(GCodeBefehl("G92", None, None, None, None, "G92 E0"))
 
-            #e_dist = math.hypot(strecke.x2 - strecke.x1, strecke.y2 - strecke.y1)
-            e_dist = math.sqrt((strecke.x2 - strecke.x1)**2 + (strecke.y2 - strecke.y1)**2) / 50 # * a
-            #print (e_dist)
+            # 1mm pro 50mm Weg
+            e_dist = math.sqrt((strecke.x2 - strecke.x1)**2 + (strecke.y2 - strecke.y1)**2) / 50
+
             s1 = "G1 X{:0.5f} Y{:0.5f} Z{:0.5f}".format(strecke.x1 + mitte_x, strecke.y1 + mitte_y, strecke.z1)
             s2 = "G1 X{:0.5f} Y{:0.5f} E{:0.5f}".format(strecke.x2 + mitte_x, strecke.y2 + mitte_y, e_off + e_dist)
 
-            befehle.append(GCodeBefehl("G1", z(strecke.x1), z(strecke.y1), z(strecke.z1), None, s1))
-            befehle.append(GCodeBefehl("G1", z(strecke.x2), z(strecke.y2), None, z(e_off + e_dist), s2))
-
+            # Speichern in Ausgabedatei
             print(s1, file=f)
             print(s2, file=f)
+
             e_off += e_dist
 
-        # Bisschen Hoch am Ende 5mm
+        # Bisschen Hoch am Ende, 5mm
         s1 = "G1 Z{:0.5f}".format(sliced[-1].z1 + 5)
         print(s1, file=f)
 
@@ -105,7 +69,6 @@ def export(sliced, ausgabe_datei, gcode_anfang=None, gcode_ende=None, mitte_x=0,
                 for zeile in g:
                     print(zeile.strip(), file=f)
 
-        print('finished')
-
-
-        return befehle
+    # Anzahl an Zeilen im Gcode
+    anzahl_zeilen = sum(1 for line in open(ausgabe_datei))
+    return anzahl_zeilen
