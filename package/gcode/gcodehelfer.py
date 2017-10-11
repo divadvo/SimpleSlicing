@@ -14,7 +14,7 @@ class GCodeStrecke:
             self.z2 = z2
 
         else:
-            prozent = 0.05
+            prozent = 0
 
             px = x2 - x1
             py = y2 - y1
