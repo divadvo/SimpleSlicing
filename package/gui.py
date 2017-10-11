@@ -155,7 +155,7 @@ class ControlPanel(wx.Panel):
         gcode_datei_path = os.path.splitext(stl_datei_path)[0] + ".gcode"
 
         global befehle
-        befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path, "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/tests/config/anfang.gcode", "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/tests/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
+        befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path, "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/anfang.gcode", "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
 
         self.button_gcode_to_arduino.Enable()
         self.befehle_text.Enable()

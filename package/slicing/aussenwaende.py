@@ -24,7 +24,7 @@ def generiere_aussenwaende(stl_data, parameter):
 
     for aktuelle_hohe in np.arange(0, maximale_hohe + schicht_dicke, schicht_dicke):
         percentage = aktuelle_hohe / (maximale_hohe + schicht_dicke) * 100
-        print "{0:.0f}%".format(percentage)
+        #print "{0:.0f}%".format(percentage)
         dialog.Update(percentage)
 
         for dreieck in stl_data.dreiecke:
@@ -35,9 +35,68 @@ def generiere_aussenwaende(stl_data, parameter):
             if min_z - schicht_dicke < aktuelle_hohe <= max_z:
                 waende += intersect(dreieck, aktuelle_hohe, parameter, stl_data.hilfswerte)
 
+
     dialog.Destroy()
 
-    return waende
+
+    waende.sort(key=lambda strecke: strecke.z1)
+
+    neue_wande = []
+
+    for aktuelle_hohe in np.arange(0, maximale_hohe + schicht_dicke, schicht_dicke):
+        alle = [strecke for strecke in waende if strecke.z1 == aktuelle_hohe]
+        #print "LLLLLL", len(alle)
+        neue_alle = []
+
+        c_x = 0
+        c_y = 0
+
+        #'''
+        length = len(alle)
+        for i in range(length):
+            start = find_closest(c_x, c_y, alle)
+            neue_alle.append(start)
+            alle.remove(start)
+            c_x = start.x2
+            c_y = start.y2
+        #    '''
+
+        #if aktuelle_hohe == 0.2:
+        #    find_closest(0, 0, alle)
+
+        neue_wande += neue_alle
+        
+
+
+    return neue_wande
+
+def find_closest(c_x, c_y, alle_strecken):
+    #alle_strecken.sort(key=lambda strecke: (strecke.x1 - c_x)**2 + (strecke.y1 - c_y)**2)
+
+    def d2(strecke):
+        return (strecke.x1 - c_x)**2 + (strecke.y1 - c_y)**2, (strecke.x2 - c_x)**2 + (strecke.y2 - c_y)**2
+
+    smallest_d = 1000000
+    closest = None
+    umgedreht = False
+    for idx, strecke in enumerate(alle_strecken):
+        start_d, ende_d = d2(strecke)
+        if start_d < smallest_d:
+            smallest_d = start_d
+            closest = strecke
+        elif ende_d < smallest_d:
+            smallest_d = ende_d
+            closest = strecke
+            closest.umdrehen()
+
+    print closest
+
+
+    #if alle_strecken[0].z1 == 0.2:
+    #    print "asasdasdf", alle_strecken
+    #closest = alle_strecken[0]
+    return closest
+
 
 
 def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):

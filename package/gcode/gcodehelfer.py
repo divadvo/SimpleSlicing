@@ -29,6 +29,19 @@ class GCodeStrecke:
 
         self.infill = infill
 
+    def umdrehen(self):
+        # swap
+        self.x1, self.x2 = self.x2, self.x1
+        self.y1, self.y2 = self.y2, self.y1
+        self.z1, self.z2 = self.z2, self.z1
+
+
+    def __str__(self):
+        return "({} {} {}  {} {} {})".format(self.x1, self.y1, self.z1, self.x2, self.y2, self.z2)
+
+    def __repr__(self):
+        return "({} {} {}  {} {} {})".format(self.x1, self.y1, self.z1, self.x2, self.y2, self.z2)
+
 class GCodeBefehl:
     def __init__(self, art, x, y, z, e, text):
         self.art = art
@@ -70,7 +83,7 @@ def export(sliced, ausgabe_datei, gcode_anfang=None, gcode_ende=None, mitte_x=0,
 
             #e_dist = math.hypot(strecke.x2 - strecke.x1, strecke.y2 - strecke.y1)
             e_dist = math.sqrt((strecke.x2 - strecke.x1)**2 + (strecke.y2 - strecke.y1)**2) / 50 # * a
-            print (e_dist)
+            #print (e_dist)
             s1 = "G1 X{:0.5f} Y{:0.5f} Z{:0.5f}".format(strecke.x1 + mitte_x, strecke.y1 + mitte_y, strecke.z1)
             s2 = "G1 X{:0.5f} Y{:0.5f} E{:0.5f}".format(strecke.x2 + mitte_x, strecke.y2 + mitte_y, e_off + e_dist)
 

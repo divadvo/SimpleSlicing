@@ -92,7 +92,7 @@ def generate_infill_and_supports(hilfswerte, parameter, perimeters):
 
     for z_off in np.arange(0, max_z, parameter["layer_height"]):
         percentage = z_off / max_z * 100
-        print "{0:.0f}%".format(percentage)
+        #print "{0:.0f}%".format(percentage)
         dialog.Update(percentage)
 
         schnittpunkte = pattern.schnittpunkte_alle([x for x in perimeters if x.z1 == z_off])
