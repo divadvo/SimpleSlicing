@@ -137,15 +137,6 @@ class STLEbene:
         if abstand1 * abstand2 > 0:
             return None
 
-        # TODO: / 0 ???
         t = abstand1 / (abstand1 - abstand2) # __future__ division!!!
         schnittpunkt = punkt1 + (punkt2 - punkt1).skalarmultiplikation(t)
         return schnittpunkt
-
-if __name__ == "__main__":
-    pass
-    #ebene = STLEbene(1)
-    #dreieck = STLDreieck(STLVektor3(0,1,0), STLVektor3(0,0,0), STLVektor3(0,0,2), STLVektor3(1,0,0))
-    #punkt = STLVektor3(0,0,1)
-    #print ebene.abstand_ebene_punkt(punkt)
-    #print ebene.schnittpunkte_mit_dreieck(dreieck)

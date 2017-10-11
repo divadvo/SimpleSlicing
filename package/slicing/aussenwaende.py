@@ -2,29 +2,30 @@ import numpy as np
 import stl.stl
 import gcode.gcodehelfer
 
+
 def generiere_aussenwaende(stl_data, parameter):
     waende = []
 
-    # Quick function to round to arbitrary layer-height precision to a single decimal place.
+    # Runden
     def my_round(x, base):
         return round(base * round(float(x) / base), 1)
 
     schicht_dicke = parameter["layer_height"]
-    maximale_hohe = my_round(stl_data.hilfswerte.max.z - stl_data.hilfswerte.min.z, schicht_dicke)
+    maximale_hohe = my_round(
+        stl_data.hilfswerte.max.z - stl_data.hilfswerte.min.z, schicht_dicke)
 
-    # Von Hohe 0 bis oben
-    # in [schicht_dicke] Schritten
-    # np.arange() fur dezimale Schritte
     import wx
 
     progressMax = 100
     dialog = wx.ProgressDialog("Aussenwaende", "Bitte warten", progressMax,
-            style=wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_SMOOTH | wx.PD_AUTO_HIDE)
+                               style=wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_SMOOTH | wx.PD_AUTO_HIDE)
 
-
+    # Von Hohe 0 bis oben
+    # in [schicht_dicke] Schritten
+    # np.arange() fur dezimale Schritte
     for aktuelle_hohe in np.arange(0, maximale_hohe + schicht_dicke, schicht_dicke):
         percentage = aktuelle_hohe / (maximale_hohe + schicht_dicke) * 100
-        #print "{0:.0f}%".format(percentage)
+        # print "{0:.0f}%".format(percentage)
         dialog.Update(percentage)
 
         for dreieck in stl_data.dreiecke:
@@ -33,42 +34,36 @@ def generiere_aussenwaende(stl_data, parameter):
 
             # Benutze nur die Dreiecke die in der derzeitigen Schicht liegen
             if min_z - schicht_dicke < aktuelle_hohe <= max_z:
-                waende += intersect(dreieck, aktuelle_hohe, parameter, stl_data.hilfswerte)
-
+                waende += intersect(dreieck, aktuelle_hohe,
+                                    parameter, stl_data.hilfswerte)
 
     dialog.Destroy()
-
-
     waende.sort(key=lambda strecke: strecke.z1)
 
     neue_wande = []
 
     for aktuelle_hohe in np.arange(0, maximale_hohe + schicht_dicke, schicht_dicke):
         alle = [strecke for strecke in waende if strecke.z1 == aktuelle_hohe]
-        #print "LLLLLL", len(alle)
-        neue_alle = []
 
+        neue_alle = []
         c_x = 0
         c_y = 0
-
-        #'''
         length = len(alle)
+
+        # Gehe alle Strecken durch
+        # finde die am nachsten liegende
+        # uberprufe nicht die schon benutzten
         for i in range(length):
             start = find_closest(c_x, c_y, alle)
             neue_alle.append(start)
             alle.remove(start)
             c_x = start.x2
             c_y = start.y2
-        #    '''
-
-        #if aktuelle_hohe == 0.2:
-        #    find_closest(0, 0, alle)
 
         neue_wande += neue_alle
-        
-
 
     return neue_wande
+
 
 def find_closest(c_x, c_y, alle_strecken):
 
@@ -80,6 +75,8 @@ def find_closest(c_x, c_y, alle_strecken):
     umgedreht = False
     for idx, strecke in enumerate(alle_strecken):
         start_d, ende_d = d2(strecke)
+        # Wenn das Ende der Strecke naher ist,
+        # drehe um
         if start_d < smallest_d:
             smallest_d = start_d
             closest = strecke
@@ -91,13 +88,15 @@ def find_closest(c_x, c_y, alle_strecken):
     return closest
 
 
-
 def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
     strecken = []
 
-    punkte_uber_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z > aktuelle_hohe + parameter["layer_height"]]
-    punkte_unter_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z < aktuelle_hohe + parameter["layer_height"]]
-    punkte_in_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if aktuelle_hohe <= eckpunkt.z <= aktuelle_hohe + parameter["layer_height"]]
+    punkte_uber_schicht = [
+        eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z > aktuelle_hohe + parameter["layer_height"]]
+    punkte_unter_schicht = [
+        eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z < aktuelle_hohe + parameter["layer_height"]]
+    punkte_in_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if aktuelle_hohe <=
+                         eckpunkt.z <= aktuelle_hohe + parameter["layer_height"]]
 
     if 1.0 - parameter["nozzle_diameter"] / 10.00 <= abs(dreieck.normalenvektor.z) <= 1.0 + parameter["nozzle_diameter"] / 10.00:
         eckpunkte = dreieck.eckpunkte
@@ -107,7 +106,8 @@ def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
 
         links = [eckpunkt for eckpunkt in eckpunkte if eckpunkt.x == x_min]
         rechts = [eckpunkt for eckpunkt in eckpunkte if eckpunkt.x == x_max]
-        zentral = [eckpunkt for eckpunkt in eckpunkte if eckpunkt not in links and eckpunkt not in rechts]
+        zentral = [
+            eckpunkt for eckpunkt in eckpunkte if eckpunkt not in links and eckpunkt not in rechts]
 
         def zwei_links(links1, links2, rechts):
             for x_ind in np.arange(links1.x, rechts.x, parameter["layer_height"]):
@@ -116,8 +116,10 @@ def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
 
                 strecken.append(
                     gcode.gcodehelfer.GCodeStrecke(
-                        x_ind, (rechts.y - links1.y) * t1 + links1.y, aktuelle_hohe,
-                        x_ind, (rechts.y - links2.y) * t2 + links2.y, aktuelle_hohe
+                        x_ind, (rechts.y - links1.y) *
+                        t1 + links1.y, aktuelle_hohe,
+                        x_ind, (rechts.y - links2.y) *
+                        t2 + links2.y, aktuelle_hohe
                     )
                 )
 
@@ -128,8 +130,10 @@ def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
 
                 strecken.append(
                     gcode.gcodehelfer.GCodeStrecke(
-                        x_ind, (rechts1.y - links.y) * t1 + links.y, aktuelle_hohe,
-                        x_ind, (rechts2.y - links.y) * t2 + links.y, aktuelle_hohe
+                        x_ind, (rechts1.y - links.y) *
+                        t1 + links.y, aktuelle_hohe,
+                        x_ind, (rechts2.y - links.y) *
+                        t2 + links.y, aktuelle_hohe
                     )
                 )
 

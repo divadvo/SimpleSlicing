@@ -26,6 +26,7 @@ class ControlPanel(wx.Panel):
 
         fgs = wx.FlexGridSizer(6, 2, 10, 10)
 
+        # Parameter Eingabe
         self.infill_text = wx.StaticText(self, label="Infill")
         self.layer_height_text = wx.StaticText(self, label="layer_height")
         self.nozzle_diameter_text = wx.StaticText(
@@ -55,7 +56,6 @@ class ControlPanel(wx.Panel):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.sizer.AddSpacer(10)
-
         self.sizer.Add(self.dreiecke_text, 0, wx.EXPAND)
 
         self.sizer.AddSpacer(10)
@@ -75,7 +75,6 @@ class ControlPanel(wx.Panel):
         self.sizer.AddSpacer(10)
 
         self.befehle_text = wx.StaticText(self, label="Befehle:")
-        # self.befehle_text.Disable()
         self.sizer.AddSpacer(10)
         self.sizer.Add(self.befehle_text, 0, wx.EXPAND)
 
@@ -95,13 +94,16 @@ class ControlPanel(wx.Panel):
 
         global gcode_datei_path
 
+        # Datei mit Zeit im Namen
         import time
         timestr = time.strftime("%Y%m%d-%H%M%S")
 
+        # Slice
         sliced = slicing.slicer.slice(stl_data)
         gcode_datei_path = os.path.splitext(
             stl_datei_path)[0] + "_{}.gcode".format(timestr)
 
+        # Export
         befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path, "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/anfang.gcode",
                                            "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
         self.aktualisiere_befehle_text(befehle)
@@ -109,7 +111,7 @@ class ControlPanel(wx.Panel):
     def setze_anzahl_dreiecke(self, anzahl_dreiecke):
         self.dreiecke_text.SetLabel("Anzahl Dreiecke: " + str(anzahl_dreiecke))
 
-
+# Beispiel aus Bibliothek VTK. Zeigt STL
 class ViewPanel(wx.Panel):
     def __init__(self, parent):
         super(ViewPanel, self).__init__(parent)
@@ -193,10 +195,11 @@ class Example(wx.Frame):
         self.SetMenuBar(menubar)
 
     def erstelle_panels(self):
-
+        # Erstellt die Panels
         self.topSplitter = wx.SplitterWindow(self)
         vSplitter = wx.SplitterWindow(self.topSplitter)
 
+        # Panel mit Offnen Knopf
         self.button_panel = wx.Panel(self.topSplitter)
 
         h_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -212,6 +215,7 @@ class Example(wx.Frame):
 
         self.button_panel.SetSizer(main_sizer)
 
+        # STL und Control Panel
         self.view_panel = ViewPanel(vSplitter)
         self.control_panel = ControlPanel(vSplitter)
         vSplitter.SplitVertically(self.view_panel, self.control_panel)
@@ -224,6 +228,7 @@ class Example(wx.Frame):
         sizer.Add(self.topSplitter, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
+        # Control und STL zunachst nicht sichtbar
         self.view_panel.Hide()
         self.control_panel.Hide()
 
@@ -242,18 +247,18 @@ class Example(wx.Frame):
         global stl_datei_path
         global stl_data
 
+        # Lese Datei und analysiere
         stl_datei_path = stl_datei
         stl_data = stl.stlanalyse.stl_analysieren(stl_datei)
 
+        # Zeige Panels
         self.control_panel.setze_anzahl_dreiecke(len(stl_data.dreiecke))
         self.view_panel.renderthis()
 
         self.view_panel.Show()
         self.control_panel.Show()
-
         self.button_panel.Hide()
 
-        # self.topSplitter.SetSashGravity(0)
         self.topSplitter.Unsplit(self.button_panel)
 
     def on_quit(self, e):
@@ -269,7 +274,6 @@ class Example(wx.Frame):
             self.filepath = dlg.GetPath()
 
             self.open_file(self.filepath)
-            #self.SetTitle("Editing ... "+self.filepath)
         dlg.Destroy()
 
 

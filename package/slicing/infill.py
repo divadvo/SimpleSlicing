@@ -14,6 +14,7 @@ class InfillGerade:
 
 class Pattern:
     def __init__(self, unit, hilfswerte):
+        # Erstelle das Gitter
         import math
         minX = 0
         minY = 0
@@ -21,15 +22,11 @@ class Pattern:
         maxY = int(math.ceil(hilfswerte.max.y - hilfswerte.min.y))
         unitInt = int(unit)
 
-        import numpy as np
-
         self.strecken = []
         for i in range(minX, maxX, unitInt):
-        #for i in np.arange(minX, maxX, unit):
             self.strecken.append(InfillGerade(i, minY, i, maxY))
         
         for i in range(minY, maxY, unitInt):
-        #for i in np.arange(minY, maxY, unit):
             self.strecken.append(InfillGerade(minX, i, maxX, i))
 
     def schnittpunkte_alle(self, perimeters):
@@ -38,7 +35,7 @@ class Pattern:
             schnittpunkte.extend(self.schnittpunkte_errechnen(gerade, perimeters))
         return schnittpunkte
 
-
+    # Berechne alle Schnittpunkte mit einer Strecke
     def schnittpunkte_errechnen(self, gerade, perimeters):
         schnittpunkte = []
         for strecke in perimeters:
@@ -47,6 +44,7 @@ class Pattern:
                 schnittpunkte.append(intersect)
         return schnittpunkte
 
+    # Schnittpunkt von 2 Strecken (nicht geraden)
     def get_line_intersection(self, p, q):
         s1_x = p.x2 - p.x1
         s1_y = p.y2 - p.y1
@@ -80,15 +78,14 @@ def generate_infill_and_supports(hilfswerte, parameter, perimeters):
 
     infill = []
 
+    # Progressbar
     import wx
-
     progressMax = 100
     dialog = wx.ProgressDialog("Infill", "Bitte warten", progressMax,
             style=wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_SMOOTH | wx.PD_AUTO_HIDE)
 
     for z_off in np.arange(0, max_z, parameter["layer_height"]):
         percentage = z_off / max_z * 100
-        #print "{0:.0f}%".format(percentage)
         dialog.Update(percentage)
 
         schnittpunkte = pattern.schnittpunkte_alle([x for x in perimeters if x.z1 == z_off])
@@ -97,9 +94,6 @@ def generate_infill_and_supports(hilfswerte, parameter, perimeters):
                 P1 = schnittpunkte[i]
                 P2 = schnittpunkte[i+1]
                 infill.append(gcode.gcodehelfer.GCodeStrecke(P1[0], P1[1], z_off, P2[0], P2[1], z_off, True))
-
-    #for z_off in np.arange(0, max_z, parameter["layer_height"]):
-    #    infill += [gcode.gcodehelfer.GCodeStrecke(x1, y1, z_off, x2, y2, z_off) for ((x1, y1), (x2, y2)) in result]
 
     dialog.Destroy()
 
