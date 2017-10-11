@@ -21,8 +21,6 @@ class Pattern:
         maxY = int(math.ceil(hilfswerte.max.y - hilfswerte.min.y))
         unitInt = int(unit)
 
-        print minX, minY, maxX, maxY, unitInt
-
         import numpy as np
 
         self.strecken = []
@@ -77,8 +75,6 @@ def generate_infill_and_supports(hilfswerte, parameter, perimeters):
     max_y = hilfswerte.max.y - hilfswerte.min.y
     max_z = hilfswerte.max.z - hilfswerte.min.z
     unit = math.sqrt(max_x * max_y) * (1.00000001 - parameter["infill"]) / 2 #4
-    print math.sqrt(max_x * max_y)
-    print "unit", unit
 
     pattern = Pattern(unit, hilfswerte)
 

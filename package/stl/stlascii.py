@@ -33,13 +33,14 @@ def read_dreieck(zeilen, i):
 def read_dreieck_eckpunkte(zeilen, i):
     eckpunkte = []
 
+    # Lese die nachsten 3 Zeilen
     for k in range(3):
         zeile = zeilen[i + k]
         if zeile.startswith("vertex"):
             eckpunkt = read_vec3_ignoriere(zeilen, i + k, 1)
             eckpunkte.append(eckpunkt)
         else:
-            print("ERROR: less than 3 vertices")
+            print("FEHLER: weniger als 3 Eckpunkte")
 
     return eckpunkte
 

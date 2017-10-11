@@ -71,7 +71,6 @@ def generiere_aussenwaende(stl_data, parameter):
     return neue_wande
 
 def find_closest(c_x, c_y, alle_strecken):
-    #alle_strecken.sort(key=lambda strecke: (strecke.x1 - c_x)**2 + (strecke.y1 - c_y)**2)
 
     def d2(strecke):
         return (strecke.x1 - c_x)**2 + (strecke.y1 - c_y)**2, (strecke.x2 - c_x)**2 + (strecke.y2 - c_y)**2
@@ -89,12 +88,6 @@ def find_closest(c_x, c_y, alle_strecken):
             closest = strecke
             closest.umdrehen()
 
-    print closest
-
-
-    #if alle_strecken[0].z1 == 0.2:
-    #    print "asasdasdf", alle_strecken
-    #closest = alle_strecken[0]
     return closest
 
 

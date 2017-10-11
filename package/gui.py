@@ -11,7 +11,7 @@ import gcode.gcodehelfer
 stl_datei_path = None
 stl_data = None
 gcode_datei_path = None
-befehle = None
+
 
 class ControlPanel(wx.Panel):
     def __init__(self, parent):
@@ -21,13 +21,15 @@ class ControlPanel(wx.Panel):
 
     def InitUI(self):
         self.button_stl_to_gcode = wx.Button(self, label='STL -> GCode')
-        self.Bind(wx.EVT_BUTTON, self.button_stl_to_gcode_click, self.button_stl_to_gcode)
+        self.Bind(wx.EVT_BUTTON, self.button_stl_to_gcode_click,
+                  self.button_stl_to_gcode)
 
         fgs = wx.FlexGridSizer(6, 2, 10, 10)
 
         self.infill_text = wx.StaticText(self, label="Infill")
         self.layer_height_text = wx.StaticText(self, label="layer_height")
-        self.nozzle_diameter_text = wx.StaticText(self, label="nozzle_diameter")
+        self.nozzle_diameter_text = wx.StaticText(
+            self, label="nozzle_diameter")
         self.start_x_text = wx.StaticText(self, label="Start X")
         self.start_y_text = wx.StaticText(self, label="Start Y")
 
@@ -43,14 +45,14 @@ class ControlPanel(wx.Panel):
             (self.nozzle_diameter_text), (self.tc3, 1, wx.EXPAND),
             (self.start_x_text), (self.tc4, 1, wx.EXPAND),
             (self.start_y_text), (self.tc5, 1, wx.EXPAND)
-            ])
+        ])
 
         fgs.AddGrowableRow(2, 1)
         fgs.AddGrowableCol(1, 1)
 
         self.dreiecke_text = wx.StaticText(self)
 
-        self.sizer=wx.BoxSizer(wx.VERTICAL)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.sizer.AddSpacer(10)
 
@@ -73,7 +75,7 @@ class ControlPanel(wx.Panel):
         self.sizer.AddSpacer(10)
 
         self.befehle_text = wx.StaticText(self, label="Befehle:")
-        #self.befehle_text.Disable()
+        # self.befehle_text.Disable()
         self.sizer.AddSpacer(10)
         self.sizer.Add(self.befehle_text, 0, wx.EXPAND)
 
@@ -93,15 +95,20 @@ class ControlPanel(wx.Panel):
 
         global gcode_datei_path
 
-        sliced = slicing.slicer.slice(stl_data)
-        gcode_datei_path = os.path.splitext(stl_datei_path)[0] + ".gcode"
+        import time
+        timestr = time.strftime("%Y%m%d-%H%M%S")
 
-        global befehle
-        befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path, "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/anfang.gcode", "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
+        sliced = slicing.slicer.slice(stl_data)
+        gcode_datei_path = os.path.splitext(
+            stl_datei_path)[0] + "_{}.gcode".format(timestr)
+
+        befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path, "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/anfang.gcode",
+                                           "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
         self.aktualisiere_befehle_text(befehle)
 
     def setze_anzahl_dreiecke(self, anzahl_dreiecke):
         self.dreiecke_text.SetLabel("Anzahl Dreiecke: " + str(anzahl_dreiecke))
+
 
 class ViewPanel(wx.Panel):
     def __init__(self, parent):
@@ -111,55 +118,56 @@ class ViewPanel(wx.Panel):
     def InitUI(self):
         self.widget = wxVTKRenderWindowInteractor(self, -1)
         self.widget.Enable(1)
-        self.widget.AddObserver("ExitEvent", lambda o,e,f=self: f.Close())
+        self.widget.AddObserver("ExitEvent", lambda o, e, f=self: f.Close())
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.widget, 1, wx.EXPAND)
         self.SetSizer(self.sizer)
         self.Layout()
         self.ren = vtk.vtkRenderer()
-        self.filename=""
+        self.filename = ""
         self.isploted = False
 
     def renderthis(self):
-            # open a window and create a renderer
-            self.widget.GetRenderWindow().AddRenderer(self.ren)
+        # open a window and create a renderer
+        self.widget.GetRenderWindow().AddRenderer(self.ren)
 
-            self.filename = stl_datei_path
-            # render the data
-            reader = vtk.vtkSTLReader()
-            reader.SetFileName(self.filename)
+        self.filename = stl_datei_path
+        # render the data
+        reader = vtk.vtkSTLReader()
+        reader.SetFileName(self.filename)
 
-            # To take the polygonal data from the vtkConeSource and
-            # create a rendering for the renderer.
-            coneMapper = vtk.vtkPolyDataMapper()
-            coneMapper.SetInput(reader.GetOutput())
+        # To take the polygonal data from the vtkConeSource and
+        # create a rendering for the renderer.
+        coneMapper = vtk.vtkPolyDataMapper()
+        coneMapper.SetInput(reader.GetOutput())
 
-            # create an actor for our scene
-            if self.isploted:
-                coneActor=self.ren.GetActors().GetLastActor()
-                self.ren.RemoveActor(coneActor)
+        # create an actor for our scene
+        if self.isploted:
+            coneActor = self.ren.GetActors().GetLastActor()
+            self.ren.RemoveActor(coneActor)
 
-            coneActor = vtk.vtkActor()
-            coneActor.SetMapper(coneMapper)
-            # Add actor
-            self.ren.AddActor(coneActor)
-           # print self.ren.GetActors().GetNumberOfItems()
+        coneActor = vtk.vtkActor()
+        coneActor.SetMapper(coneMapper)
+        # Add actor
+        self.ren.AddActor(coneActor)
+       # print self.ren.GetActors().GetNumberOfItems()
 
-            if not self.isploted:
-                axes = vtk.vtkAxesActor()
-                self.marker = vtk.vtkOrientationMarkerWidget()
-                self.marker.SetInteractor( self.widget._Iren )
-                self.marker.SetOrientationMarker( axes )
-                self.marker.SetViewport(0.75,0,1,0.25)
-                self.marker.SetEnabled(1)
+        if not self.isploted:
+            axes = vtk.vtkAxesActor()
+            self.marker = vtk.vtkOrientationMarkerWidget()
+            self.marker.SetInteractor(self.widget._Iren)
+            self.marker.SetOrientationMarker(axes)
+            self.marker.SetViewport(0.75, 0, 1, 0.25)
+            self.marker.SetEnabled(1)
 
-            self.ren.ResetCamera()
-            self.ren.ResetCameraClippingRange()
-            cam = self.ren.GetActiveCamera()
-            cam.Elevation(10)
-            cam.Azimuth(70)
-            self.isploted = True
-            self.ren.Render()
+        self.ren.ResetCamera()
+        self.ren.ResetCameraClippingRange()
+        cam = self.ren.GetActiveCamera()
+        cam.Elevation(10)
+        cam.Azimuth(70)
+        self.isploted = True
+        self.ren.Render()
+
 
 class Example(wx.Frame):
 
@@ -186,66 +194,45 @@ class Example(wx.Frame):
 
     def erstelle_panels(self):
 
-        #self.sp = wx.SplitterWindow(self)
-
-        #self.view_panel = ViewPanel(self.sp)
-        #self.control_panel = ControlPanel(self.sp)
-        #self.sp.SplitVertically(self.view_panel, self.control_panel)
-        #self.sp.SetSashGravity(0.5)
-
-        
-
-
         self.topSplitter = wx.SplitterWindow(self)
         vSplitter = wx.SplitterWindow(self.topSplitter)
 
-
-
-
         self.button_panel = wx.Panel(self.topSplitter)
- 
+
         h_sizer = wx.BoxSizer(wx.HORIZONTAL)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
- 
+
         self.open_button = wx.Button(self.button_panel, label="STL Offnen")
         self.open_button.Bind(wx.EVT_BUTTON, self.on_open)
         h_sizer.Add(self.open_button, 0, wx.CENTER)
- 
-        main_sizer.Add((0,0), 1, wx.EXPAND)
+
+        main_sizer.Add((0, 0), 1, wx.EXPAND)
         main_sizer.Add(h_sizer, 0, wx.CENTER)
-        main_sizer.Add((0,0), 1, wx.EXPAND)
- 
+        main_sizer.Add((0, 0), 1, wx.EXPAND)
+
         self.button_panel.SetSizer(main_sizer)
 
-
- 
         self.view_panel = ViewPanel(vSplitter)
         self.control_panel = ControlPanel(vSplitter)
         vSplitter.SplitVertically(self.view_panel, self.control_panel)
         vSplitter.SetSashGravity(0.5)
- 
+
         self.topSplitter.SplitHorizontally(self.button_panel, vSplitter)
         self.topSplitter.SetSashGravity(0.1)
- 
+
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.topSplitter, 1, wx.EXPAND)
         self.SetSizer(sizer)
-
-        # self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        # self.sizer.Add(self.view_panel, 0, wx.ALIGN_LEFT, 4)
-        # self.sizer.Add(self.control_panel, 0, wx.ALIGN_RIGHT, 4)
-        # self.SetSizer(self.sizer)
 
         self.view_panel.Hide()
         self.control_panel.Hide()
 
     def InitUI(self):
-
         self.erstelle_menu()
         self.erstelle_panels()
 
         self.SetSize((1280, 720))
-        self.SetTitle('STL -> Gcode -> 3D Drucker')
+        self.SetTitle('STL -> Gcode')
         self.Centre()
         self.Show(True)
 
@@ -262,24 +249,23 @@ class Example(wx.Frame):
         self.view_panel.renderthis()
 
         self.view_panel.Show()
-        print 'View'
         self.control_panel.Show()
 
         self.button_panel.Hide()
 
-        #self.topSplitter.SetSashGravity(0)
+        # self.topSplitter.SetSashGravity(0)
         self.topSplitter.Unsplit(self.button_panel)
-
 
     def on_quit(self, e):
         self.Close()
 
     def on_open(self, e):
-        dlg = wx.FileDialog(self, "Choose a file", self.dirname, "", "*.stl", wx.OPEN)
+        dlg = wx.FileDialog(self, "Datei auswahlen",
+                            self.dirname, "", "*.stl", wx.OPEN)
 
         if dlg.ShowModal() == wx.ID_OK:
-            self.filename=dlg.GetFilename()
-            self.dirname=dlg.GetDirectory()
+            self.filename = dlg.GetFilename()
+            self.dirname = dlg.GetDirectory()
             self.filepath = dlg.GetPath()
 
             self.open_file(self.filepath)
