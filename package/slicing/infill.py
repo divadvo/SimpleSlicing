@@ -88,6 +88,7 @@ def generate_infill_and_supports(hilfswerte, parameter, perimeters):
         percentage = z_off / max_z * 100
         dialog.Update(percentage)
 
+        # Nur in derzeitigen Schicht 
         schnittpunkte = pattern.schnittpunkte_alle([x for x in perimeters if x.z1 == z_off])
         for i in range(0, len(schnittpunkte), 2):
             if i+1 < len(schnittpunkte):

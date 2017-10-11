@@ -11,8 +11,7 @@ def generiere_aussenwaende(stl_data, parameter):
         return round(base * round(float(x) / base), 1)
 
     schicht_dicke = parameter["layer_height"]
-    maximale_hohe = my_round(
-        stl_data.hilfswerte.max.z - stl_data.hilfswerte.min.z, schicht_dicke)
+    maximale_hohe = my_round(stl_data.hilfswerte.max.z - stl_data.hilfswerte.min.z, schicht_dicke)
 
     import wx
 
@@ -38,6 +37,9 @@ def generiere_aussenwaende(stl_data, parameter):
                                     parameter, stl_data.hilfswerte)
 
     dialog.Destroy()
+
+
+    # In einem Zug
     waende.sort(key=lambda strecke: strecke.z1)
 
     neue_wande = []
@@ -91,23 +93,23 @@ def find_closest(c_x, c_y, alle_strecken):
 def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
     strecken = []
 
-    punkte_uber_schicht = [
-        eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z > aktuelle_hohe + parameter["layer_height"]]
-    punkte_unter_schicht = [
-        eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z < aktuelle_hohe + parameter["layer_height"]]
-    punkte_in_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if aktuelle_hohe <=
-                         eckpunkt.z <= aktuelle_hohe + parameter["layer_height"]]
+    punkte_uber_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z > aktuelle_hohe + parameter["layer_height"]]
+    punkte_unter_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z < aktuelle_hohe + parameter["layer_height"]]
+    punkte_in_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if 
+                        aktuelle_hohe <= eckpunkt.z <= aktuelle_hohe + parameter["layer_height"]]
 
+    # Fast Flach in der Ebene
     if 1.0 - parameter["nozzle_diameter"] / 10.00 <= abs(dreieck.normalenvektor.z) <= 1.0 + parameter["nozzle_diameter"] / 10.00:
         eckpunkte = dreieck.eckpunkte
 
+        # Finde kleinste und grosste x Koordinate vom Dreieck
         x_min = min(eckpunkte, key=lambda v: v.x).x
         x_max = max(eckpunkte, key=lambda v: v.x).x
 
+        # Wie sieht das Dreieck aus? 2 Punkte links? 2 Punkte rechts? 1 Mittig?
         links = [eckpunkt for eckpunkt in eckpunkte if eckpunkt.x == x_min]
         rechts = [eckpunkt for eckpunkt in eckpunkte if eckpunkt.x == x_max]
-        zentral = [
-            eckpunkt for eckpunkt in eckpunkte if eckpunkt not in links and eckpunkt not in rechts]
+        zentral = [eckpunkt for eckpunkt in eckpunkte if eckpunkt not in links and eckpunkt not in rechts]
 
         def zwei_links(links1, links2, rechts):
             for x_ind in np.arange(links1.x, rechts.x, parameter["layer_height"]):
@@ -116,10 +118,8 @@ def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
 
                 strecken.append(
                     gcode.gcodehelfer.GCodeStrecke(
-                        x_ind, (rechts.y - links1.y) *
-                        t1 + links1.y, aktuelle_hohe,
-                        x_ind, (rechts.y - links2.y) *
-                        t2 + links2.y, aktuelle_hohe
+                        x_ind, (rechts.y - links1.y) * t1 + links1.y, aktuelle_hohe,
+                        x_ind, (rechts.y - links2.y) * t2 + links2.y, aktuelle_hohe
                     )
                 )
 
@@ -130,10 +130,8 @@ def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
 
                 strecken.append(
                     gcode.gcodehelfer.GCodeStrecke(
-                        x_ind, (rechts1.y - links.y) *
-                        t1 + links.y, aktuelle_hohe,
-                        x_ind, (rechts2.y - links.y) *
-                        t2 + links.y, aktuelle_hohe
+                        x_ind, (rechts1.y - links.y) * t1 + links.y, aktuelle_hohe,
+                        x_ind, (rechts2.y - links.y) * t2 + links.y, aktuelle_hohe
                     )
                 )
 
@@ -153,7 +151,10 @@ def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
             zwei_rechts(links[0], zentral[0], mittelpunkt)
             zwei_links(zentral[0], mittelpunkt, rechts[0])
 
+    # Wenn nicht flach in der Ebene
+    # Wie zum Beispiel Seite des Wurfels
     else:
+        # Einfach Strecke erstellen
         if len(punkte_in_schicht) == 2:
             strecken.append(
                 gcode.gcodehelfer.GCodeStrecke(
@@ -162,6 +163,7 @@ def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
                 )
             )
 
+        # Schnittpunkte berechnen: Dreieck <-> Ebene
         elif len(punkte_in_schicht) == 0:
             ebene = stl.stl.STLEbene(aktuelle_hohe)
             schnittpunkte = ebene.schnittpunkte_mit_dreieck(dreieck)
