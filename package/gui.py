@@ -1,6 +1,5 @@
 import wx
 import os
-from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
 
 import vtk
 from vtk.wx.wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor
@@ -13,12 +12,6 @@ stl_datei_path = None
 stl_data = None
 gcode_datei_path = None
 befehle = None
-
-class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ListCtrlAutoWidthMixin):
-    def __init__(self, parent):
-        wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
-        CheckListCtrlMixin.__init__(self)
-        ListCtrlAutoWidthMixin.__init__(self)
 
 class ControlPanel(wx.Panel):
     def __init__(self, parent):
@@ -79,66 +72,15 @@ class ControlPanel(wx.Panel):
         self.sizer.Add(wx.StaticLine(self), 0, wx.EXPAND)
         self.sizer.AddSpacer(10)
 
-        self.button_gcode_to_arduino = wx.Button(self, label='GCode -> Arduino')
-        self.Bind(wx.EVT_BUTTON, self.button_gcode_to_arduino_click, self.button_gcode_to_arduino)
-
         self.befehle_text = wx.StaticText(self, label="Befehle:")
-        self.button_gcode_to_arduino.Disable()
-        self.befehle_text.Disable()
-
-        self.sizer.Add(self.button_gcode_to_arduino, 0, wx.EXPAND)
+        #self.befehle_text.Disable()
         self.sizer.AddSpacer(10)
         self.sizer.Add(self.befehle_text, 0, wx.EXPAND)
 
-        self.list = CheckListCtrl(self)
-        self.list.InsertColumn(0, '#')
-        self.list.InsertColumn(1, 'Art')
-        self.list.InsertColumn(2, 'X')
-        self.list.InsertColumn(3, 'Y')
-        self.list.InsertColumn(4, 'Z')
-        self.list.InsertColumn(5, 'E')
-
-        self.list.Disable()
-
-
-        self.sizer.Add(self.list, 0, wx.EXPAND)
-
         self.SetSizer(self.sizer)
 
-    def button_gcode_to_arduino_click(self, event):
-        self.button_stl_to_gcode.Disable()
-        self.button_gcode_to_arduino.Disable()
-
-        def get_zahl(zahl):
-            if zahl == None:
-                return ""
-            else:
-                return "{:0.5f}".format(zahl)
-
-
-        for idx, befehl in enumerate(befehle):
-            index = self.list.InsertStringItem(10000, str(idx+1))
-            self.list.SetStringItem(index, 1, befehl.art)
-            self.list.SetStringItem(index, 2, get_zahl(befehl.x))
-            self.list.SetStringItem(index, 3, get_zahl(befehl.y))
-            self.list.SetStringItem(index, 4, get_zahl(befehl.z))
-            self.list.SetStringItem(index, 5, get_zahl(befehl.e))
-
-        self.list.Enable()
-
-        self.Update()
-
-        import arduino.arduino
-        for idx, befehl in enumerate(befehle):
-            self.aktualisiere_befehle_text(idx + 1, len(befehle))
-            arduino.arduino.sende_befehl(befehl.text)
-            self.list.CheckItem(idx)
-            self.list.Focus(idx)
-            self.Update()
-
-    def aktualisiere_befehle_text(self, befehl_derzeit, befehle_insgesamt):
-        prozent = befehl_derzeit * 100.0 / befehle_insgesamt
-        self.befehle_text.SetLabel("Befehle: {}/{}  ({:.2f}%)".format(befehl_derzeit, befehle_insgesamt, prozent))
+    def aktualisiere_befehle_text(self, befehle_insgesamt):
+        self.befehle_text.SetLabel("Befehle: {}".format(befehle_insgesamt))
 
     def button_stl_to_gcode_click(self, event):
         parameter_slicer = {
@@ -156,9 +98,7 @@ class ControlPanel(wx.Panel):
 
         global befehle
         befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path, "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/anfang.gcode", "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
-
-        self.button_gcode_to_arduino.Enable()
-        self.befehle_text.Enable()
+        self.aktualisiere_befehle_text(len(befehle))
 
     def setze_anzahl_dreiecke(self, anzahl_dreiecke):
         self.dreiecke_text.SetLabel("Anzahl Dreiecke: " + str(anzahl_dreiecke))
