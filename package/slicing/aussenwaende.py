@@ -7,11 +7,11 @@ def generiere_aussenwaende(stl_data, parameter):
     waende = []
 
     # Runden
-    def my_round(x, base):
+    def runden(x, base):
         return round(base * round(float(x) / base), 1)
 
-    schicht_dicke = parameter["layer_height"]
-    maximale_hohe = my_round(stl_data.hilfswerte.max.z - stl_data.hilfswerte.min.z, schicht_dicke)
+    schicht_dicke = parameter["schicht_hohe"]
+    maximale_hohe = runden(stl_data.hilfswerte.max.z - stl_data.hilfswerte.min.z, schicht_dicke)
 
     import wx
 
@@ -33,7 +33,7 @@ def generiere_aussenwaende(stl_data, parameter):
 
             # Benutze nur die Dreiecke die in der derzeitigen Schicht liegen
             if min_z - schicht_dicke < aktuelle_hohe <= max_z:
-                waende += intersect(dreieck, aktuelle_hohe,
+                waende += schneiden(dreieck, aktuelle_hohe,
                                     parameter, stl_data.hilfswerte)
 
     dialog.Destroy()
@@ -56,7 +56,7 @@ def generiere_aussenwaende(stl_data, parameter):
         # finde die am nachsten liegende
         # uberprufe nicht die schon benutzten
         for i in range(length):
-            start = find_closest(c_x, c_y, alle)
+            start = am_nachsten(c_x, c_y, alle)
             neue_alle.append(start)
             alle.remove(start)
             c_x = start.x2
@@ -67,7 +67,7 @@ def generiere_aussenwaende(stl_data, parameter):
     return neue_wande
 
 
-def find_closest(c_x, c_y, alle_strecken):
+def am_nachsten(c_x, c_y, alle_strecken):
 
     def d2(strecke):
         return (strecke.x1 - c_x)**2 + (strecke.y1 - c_y)**2, (strecke.x2 - c_x)**2 + (strecke.y2 - c_y)**2
@@ -90,16 +90,16 @@ def find_closest(c_x, c_y, alle_strecken):
     return closest
 
 
-def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
+def schneiden(dreieck, aktuelle_hohe, parameter, hilfswerte):
     strecken = []
 
-    punkte_uber_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z > aktuelle_hohe + parameter["layer_height"]]
-    punkte_unter_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z < aktuelle_hohe + parameter["layer_height"]]
+    punkte_uber_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z > aktuelle_hohe + parameter["schicht_hohe"]]
+    punkte_unter_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if eckpunkt.z < aktuelle_hohe + parameter["schicht_hohe"]]
     punkte_in_schicht = [eckpunkt for eckpunkt in dreieck.eckpunkte if 
-                        aktuelle_hohe <= eckpunkt.z <= aktuelle_hohe + parameter["layer_height"]]
+                        aktuelle_hohe <= eckpunkt.z <= aktuelle_hohe + parameter["schicht_hohe"]]
 
     # Fast Flach in der Ebene
-    if 1.0 - parameter["nozzle_diameter"] / 10.00 <= abs(dreieck.normalenvektor.z) <= 1.0 + parameter["nozzle_diameter"] / 10.00:
+    if 1.0 - parameter["dusen_durchmesser"] / 10.00 <= abs(dreieck.normalenvektor.z) <= 1.0 + parameter["dusen_durchmesser"] / 10.00:
         eckpunkte = dreieck.eckpunkte
 
         # Finde kleinste und grosste x Koordinate vom Dreieck
@@ -112,7 +112,7 @@ def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
         zentral = [eckpunkt for eckpunkt in eckpunkte if eckpunkt not in links and eckpunkt not in rechts]
 
         def zwei_links(links1, links2, rechts):
-            for x_ind in np.arange(links1.x, rechts.x, parameter["layer_height"]):
+            for x_ind in np.arange(links1.x, rechts.x, parameter["schicht_hohe"]):
                 t1 = (x_ind - links1.x) / (rechts.x - links1.x)
                 t2 = (x_ind - links2.x) / (rechts.x - links2.x)
 
@@ -124,7 +124,7 @@ def intersect(dreieck, aktuelle_hohe, parameter, hilfswerte):
                 )
 
         def zwei_rechts(links, rechts1, rechts2):
-            for x_ind in np.arange(links.x, rechts1.x, parameter["layer_height"]):
+            for x_ind in np.arange(links.x, rechts1.x, parameter["schicht_hohe"]):
                 t1 = (x_ind - links.x) / (rechts1.x - links.x)
                 t2 = (x_ind - links.x) / (rechts2.x - links.x)
 

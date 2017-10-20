@@ -18,9 +18,9 @@ def start(stl_datei, parameter, gcode_anfang, gcode_ende, ausgabe_datei):
 
 
 if __name__ == "__main__":
-    start("/home/divadvo/Documents/3DPrinting/Uni/Uni_Programm/tests/models/cube.stl",
+    start("cube.stl",
           deepcopy(slicing.slicer.DEFAULT_PARAMETERS),
-          "/home/divadvo/Documents/3DPrinting/Uni/Uni_Programm/tests/config/anfang.gcode",
-          "/home/divadvo/Documents/3DPrinting/Uni/Uni_Programm/tests/config/ende.gcode",
-          "/home/divadvo/Documents/3DPrinting/Uni/Uni_Programm/tests/gcode/cube.gcode"
+          "config/anfang.gcode",
+          "config/ende.gcode",
+          "cube.gcode"
     )

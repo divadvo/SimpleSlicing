@@ -28,9 +28,9 @@ class ControlPanel(wx.Panel):
 
         # Parameter Eingabe
         self.infill_text = wx.StaticText(self, label="Infill")
-        self.layer_height_text = wx.StaticText(self, label="layer_height")
+        self.layer_height_text = wx.StaticText(self, label="schicht_hohe")
         self.nozzle_diameter_text = wx.StaticText(
-            self, label="nozzle_diameter")
+            self, label="dusen_durchmesser")
         self.start_x_text = wx.StaticText(self, label="Start X")
         self.start_y_text = wx.StaticText(self, label="Start Y")
 
@@ -86,8 +86,8 @@ class ControlPanel(wx.Panel):
     def button_stl_to_gcode_click(self, event):
         parameter_slicer = {
             "infill": float(self.tc1.GetValue()),
-            "layer_height": float(self.tc2.GetValue()),
-            "nozzle_diameter": float(self.tc3.GetValue()),
+            "schicht_hohe": float(self.tc2.GetValue()),
+            "dusen_durchmesser": float(self.tc3.GetValue()),
             "start_x": float(self.tc4.GetValue()),
             "start_y": float(self.tc5.GetValue()),
         }
@@ -99,19 +99,20 @@ class ControlPanel(wx.Panel):
         timestr = time.strftime("%Y%m%d-%H%M%S")
 
         # Slice
-        sliced = slicing.slicer.slice(stl_data)
+        strecken = slicing.slicer.slice(stl_data, parameter_slicer)
         gcode_datei_path = os.path.splitext(
             stl_datei_path)[0] + "_{}.gcode".format(timestr)
 
         # Export
-        befehle = gcode.gcodehelfer.export(sliced, gcode_datei_path, "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/anfang.gcode",
-                                           "/media/divadvo/Data/Projects/3DPrinting/Uni/Uni_Programm/package/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
+        ordner = os.path.dirname(os.path.realpath(__file__))
+        befehle = gcode.gcodehelfer.export(strecken, gcode_datei_path, ordner + "/config/anfang.gcode",
+                                           ordner + "/config/ende.gcode", mitte_x=parameter_slicer["start_x"], mitte_y=parameter_slicer["start_y"])
         self.aktualisiere_befehle_text(befehle)
 
     def setze_anzahl_dreiecke(self, anzahl_dreiecke):
         self.dreiecke_text.SetLabel("Anzahl Dreiecke: " + str(anzahl_dreiecke))
 
-# Beispiel aus Bibliothek VTK. Zeigt STL
+# Beispiel aus der Bibliothek VTK. Zeigt STL
 class ViewPanel(wx.Panel):
     def __init__(self, parent):
         super(ViewPanel, self).__init__(parent)
@@ -171,10 +172,10 @@ class ViewPanel(wx.Panel):
         self.ren.Render()
 
 
-class Example(wx.Frame):
+class Fenster(wx.Frame):
 
     def __init__(self, *args, **kwargs):
-        super(Example, self).__init__(*args, **kwargs)
+        super(Fenster, self).__init__(*args, **kwargs)
 
         self.InitUI()
 
@@ -279,7 +280,7 @@ class Example(wx.Frame):
 
 def main():
     ex = wx.App()
-    Example(None)
+    Fenster(None)
     ex.MainLoop()
 
 

@@ -39,13 +39,13 @@ class Pattern:
     def schnittpunkte_errechnen(self, gerade, perimeters):
         schnittpunkte = []
         for strecke in perimeters:
-            intersect = self.get_line_intersection(gerade, strecke)
+            intersect = self.schnittpunkt(gerade, strecke)
             if intersect is not False:
                 schnittpunkte.append(intersect)
         return schnittpunkte
 
     # Schnittpunkt von 2 Strecken (nicht geraden)
-    def get_line_intersection(self, p, q):
+    def schnittpunkt(self, p, q):
         s1_x = p.x2 - p.x1
         s1_y = p.y2 - p.y1
         s2_x = q.x2 - q.x1
@@ -65,7 +65,7 @@ class Pattern:
 
 
 
-def generate_infill_and_supports(hilfswerte, parameter, perimeters):
+def errechne_infill(hilfswerte, parameter, perimeters):
     if parameter["infill"] == 0:
             return []
 
@@ -84,17 +84,17 @@ def generate_infill_and_supports(hilfswerte, parameter, perimeters):
     dialog = wx.ProgressDialog("Infill", "Bitte warten", progressMax,
             style=wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME | wx.PD_SMOOTH | wx.PD_AUTO_HIDE)
 
-    for z_off in np.arange(0, max_z, parameter["layer_height"]):
-        percentage = z_off / max_z * 100
-        dialog.Update(percentage)
+    for z_wert in np.arange(0, max_z, parameter["schicht_hohe"]):
+        prozent = z_wert / max_z * 100
+        dialog.Update(prozent)
 
         # Nur in derzeitigen Schicht 
-        schnittpunkte = pattern.schnittpunkte_alle([x for x in perimeters if x.z1 == z_off])
+        schnittpunkte = pattern.schnittpunkte_alle([x for x in perimeters if x.z1 == z_wert])
         for i in range(0, len(schnittpunkte), 2):
             if i+1 < len(schnittpunkte):
                 P1 = schnittpunkte[i]
                 P2 = schnittpunkte[i+1]
-                infill.append(gcode.gcodehelfer.GCodeStrecke(P1[0], P1[1], z_off, P2[0], P2[1], z_off, True))
+                infill.append(gcode.gcodehelfer.GCodeStrecke(P1[0], P1[1], z_wert, P2[0], P2[1], z_wert, True))
 
     dialog.Destroy()
 

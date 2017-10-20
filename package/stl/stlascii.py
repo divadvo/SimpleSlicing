@@ -9,9 +9,12 @@ def stl_ascii_analysieren(stl_datei):
         zeilen = f.readlines()
         zeilen = [x.strip() for x in zeilen]
 
+        # Gehe alle Zeilen durch. 0 bis Anzahlen der Zeilen
         for i in range(len(zeilen)):
             zeile = zeilen[i]
 
+            # Wichtige Zeile, wenn beginnt mit:
+            # Heisst dahinter stehen die fur interessanten Information
             if zeile.startswith("facet normal"):
                 dreieck = read_dreieck(zeilen, i)
                 dreiecke.append(dreieck)
@@ -39,12 +42,11 @@ def read_dreieck_eckpunkte(zeilen, i):
         if zeile.startswith("vertex"):
             eckpunkt = read_vec3_ignoriere(zeilen, i + k, 1)
             eckpunkte.append(eckpunkt)
-        else:
-            print("FEHLER: weniger als 3 Eckpunkte")
 
     return eckpunkte
 
-
+# Konvertiert Zeichenkette in Dezimalzahlen
+# "2"+"3"="23"  und nicht 2+3=5
 def read_vec3_ignoriere(zeilen, i, ignoriere_anzahl_worter):
     zeile = zeilen[i]
 
