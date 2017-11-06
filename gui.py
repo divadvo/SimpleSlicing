@@ -206,7 +206,7 @@ class Fenster(wx.Frame):
         h_sizer = wx.BoxSizer(wx.HORIZONTAL)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.open_button = wx.Button(self.button_panel, label="STL Offnen")
+        self.open_button = wx.Button(self.button_panel, label="STL Offnen", size=(200,100))
         self.open_button.Bind(wx.EVT_BUTTON, self.on_open)
         h_sizer.Add(self.open_button, 0, wx.CENTER)
 
