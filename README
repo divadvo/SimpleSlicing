@@ -1,0 +1,20 @@
+Getested unter Ubuntu 16.04
+
+python 2.7
+
+Offne terminal in diesem Ordner. 
+Starte die Installation von allen Notwendigen Bibliotheken mit
+
+sudo bash install.sh
+
+Starte dann das Programm mit
+
+python gui.py
+
+
+
+Quellen:
+
+Wie man STL rendert: https://sukhbinder.wordpress.com/vtk-app-stl-viewer/
+Slicer: https://github.com/btuan/slicer
+Tutorials, wie man grafische Oberflachen mit wxPython erstellt: http://zetcode.com/wxpython/
