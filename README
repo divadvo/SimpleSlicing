@@ -1,8 +1,7 @@
-Getested unter Ubuntu 16.04
-
+Getestet unter Ubuntu 16.04
 python 2.7
 
-Offne terminal in diesem Ordner. 
+Offne terminal in diesem Ordner.
 Starte die Installation von allen Notwendigen Bibliotheken mit
 
 sudo bash install.sh
@@ -16,5 +15,11 @@ python gui.py
 Quellen:
 
 Wie man STL rendert: https://sukhbinder.wordpress.com/vtk-app-stl-viewer/
-Slicer: https://github.com/btuan/slicer
 Tutorials, wie man grafische Oberflachen mit wxPython erstellt: http://zetcode.com/wxpython/
+
+Slicer:
+https://github.com/VanHulleOne/SciSlice
+https://github.com/YetAnotherMinion/MooseSlicer
+https://github.com/matthewelse/pySlice
+
+https://github.com/daid/SliceAndDaid
